@@ -222,6 +222,32 @@ client_history_clear(void)
   }
 }
 
+/** Note that an OR connection attempt. This is called basically when a TCP
+ * connection comes in but has not completed the Tor negotiation. We used this
+ * information to keep entries in the geoip cache for the DoS subsystem.
+ *
+ * This won't find any bridge transport connections because at this stage, we
+ * don't know the transport name if any. And so, only applies to naked OR
+ * connections. */
+void
+geoip_note_client_attempt(const tor_addr_t *addr, time_t now)
+{
+  /* This is only useful to the DoS subsystem so ignore if not enabled. */
+  if (!dos_enabled()) {
+    return;
+  }
+
+  /* We lookup if this address/transport name has already connected
+   * successfully and if so, we will not this attempt time. Else, we do not add
+   * an entry on an attempt so to not clobber the cache with unsuccessful
+   * connections. */
+  clientmap_entry_t *ent = geoip_lookup_client(addr, NULL,
+                                               GEOIP_CLIENT_CONNECT);
+  if (ent) {
+    ent->dos_stats.conn_stats.last_attempt = now;
+  }
+}
+
 /** Note that we've seen a client connect from the IP <b>addr</b>
  * at time <b>now</b>. Ignored by all but bridges and directories if
  * configured accordingly. */
@@ -281,11 +307,15 @@ remove_old_client_helper_(struct clientmap_entry_t *ent, void *_cutoff)
 {
   time_t cutoff = *(time_t*)_cutoff / 60;
   if (ent->last_seen_in_minutes < cutoff) {
-    clientmap_entry_free(ent);
-    return 1;
-  } else {
-    return 0;
+    /* If the DoS subsystem is disabled, this is an automatic clean up. If it
+     * is enabled, check if the last attempt is below cutoff else keep it
+     * around. */
+    if (!dos_enabled() || ent->dos_stats.conn_stats.last_attempt < cutoff) {
+      clientmap_entry_free(ent);
+      return 1;
+    }
   }
+  return 0;
 }
 
 /** Forget about all clients that haven't connected since <b>cutoff</b>. */
