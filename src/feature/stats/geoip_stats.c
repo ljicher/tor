@@ -330,11 +330,15 @@ client_entry_is_still_fresh(struct clientmap_entry_t *ent,
 }
 
 /** HT_FOREACH helper: remove a clientmap_entry_t from the hashtable if it's
- * older than a certain time. */
+ * older than a certain time and also if there are no existing connections
+ * open from it. We allow non-fresh entries in the clientmap (so we can keep
+ * an accurate total count of open conns for the dos subsystem) and we skip
+ * over the non-fresh ones when we're exporting our stats. */
 static int
 remove_old_client_helper_(struct clientmap_entry_t *ent, void *_cutoff)
 {
-  if (!client_entry_is_still_fresh(ent, *(time_t*)_cutoff)) {
+  if (!client_entry_is_still_fresh(ent, *(time_t*)_cutoff) &&
+      (!dos_enabled() || !ent->dos_stats.conn_stats.concurrent_count)) {
     clientmap_entry_free(ent);
     return 1;
   }
