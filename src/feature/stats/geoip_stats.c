@@ -306,21 +306,37 @@ geoip_note_client_seen(geoip_client_action_t action,
   }
 }
 
+/** Decide whether a clientmap_entry_t from the hashtable is still fresh
++ * enough to use in our stats. It is fresh if we last saw a connection
++ * from it (or a connection attempt, if we recorded one of those)
++ * since cutoff.
++ */
+static int
+client_entry_is_still_fresh(struct clientmap_entry_t *ent,
+                            time_t cutoff_in_seconds)
+{
+  time_t cutoff_in_minutes = cutoff_in_seconds / 60;
+  if (ent->last_seen_in_minutes < cutoff_in_minutes) {
+    /* If the DoS subsystem is disabled, this is an automatic clean up. If it
+     * is enabled, check if the last attempt is below cutoff else keep it
+     * around. */
+    if (!dos_enabled() ||
+        ent->dos_stats.conn_stats.last_attempt_in_minutes <
+          cutoff_in_minutes) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 /** HT_FOREACH helper: remove a clientmap_entry_t from the hashtable if it's
  * older than a certain time. */
 static int
 remove_old_client_helper_(struct clientmap_entry_t *ent, void *_cutoff)
 {
-  time_t cutoff = *(time_t*)_cutoff / 60;
-  if (ent->last_seen_in_minutes < cutoff) {
-    /* If the DoS subsystem is disabled, this is an automatic clean up. If it
-     * is enabled, check if the last attempt is below cutoff else keep it
-     * around. */
-    if (!dos_enabled() ||
-        ent->dos_stats.conn_stats.last_attempt_in_minutes < cutoff) {
-      clientmap_entry_free(ent);
-      return 1;
-    }
+  if (!client_entry_is_still_fresh(ent, *(time_t*)_cutoff)) {
+    clientmap_entry_free(ent);
+    return 1;
   }
   return 0;
 }
