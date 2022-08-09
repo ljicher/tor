@@ -338,7 +338,7 @@ static int
 remove_old_client_helper_(struct clientmap_entry_t *ent, void *_cutoff)
 {
   if (!client_entry_is_still_fresh(ent, *(time_t*)_cutoff) &&
-      (!dos_enabled() || !ent->dos_stats.conn_stats.concurrent_count)) {
+      !dos_geoip_any_existing_conns_on_clientmap(ent)) {
     clientmap_entry_free(ent);
     return 1;
   }

@@ -78,6 +78,7 @@ int dos_enabled(void);
 void dos_log_heartbeat(void);
 void dos_geoip_entry_init(struct clientmap_entry_t *geoip_ent);
 void dos_geoip_entry_about_to_free(const struct clientmap_entry_t *geoip_ent);
+bool dos_geoip_any_existing_conns_on_clientmap(struct clientmap_entry_t *ent);
 
 void dos_new_client_conn(or_connection_t *or_conn,
                          const char *transport_name);
