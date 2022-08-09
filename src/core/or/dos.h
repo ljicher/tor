@@ -51,7 +51,7 @@ typedef struct conn_client_stats_t {
    * this to decide if we can keep or purge the stats entry in our cache. We
    * can't rely on the "last_seen_in_minutes" because that is set when a
    * successful channel is opened meaning TCP connect and Tor negotiation. */
-  time_t last_attempt;
+  time_t last_attempt_in_minutes;
 } conn_client_stats_t;
 
 /* This object is a top level object that contains everything related to the
