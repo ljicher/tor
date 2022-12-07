@@ -2817,6 +2817,9 @@ details.)
     connect via the ORPort by default. Setting either DirPort or BridgeRelay
     and setting DirCache to 0 is not supported.  (Default: 1)
 
+    **DirCache** is required for **DirPort** and if **DirCache** is set to 0 
+    **DirPort** will override **DirCache** and set **DirCache** to 1.
+
 [[DirPolicy]] **DirPolicy** __policy__,__policy__,__...__::
     Set an entrance policy for this server, to limit who can connect to the
     directory ports. The policies have the same form as exit policies above,

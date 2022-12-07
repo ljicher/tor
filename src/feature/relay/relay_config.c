@@ -1137,8 +1137,9 @@ options_validate_relay_mode(const or_options_t *old_options,
   }
 
   if (options->DirPort_set && !options->DirCache) {
-    REJECT("DirPort configured but DirCache disabled. DirPort requires "
-           "DirCache.");
+    log_warn(LD_CONFIG, "DirCache has been enabled in order to use DirPort "
+             "It is not possible to use DirPort without DirCache");
+    options->DirCache = 1;
   }
 
   if (options->BridgeRelay && !options->DirCache) {
