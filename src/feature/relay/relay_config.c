@@ -1137,9 +1137,8 @@ options_validate_relay_mode(const or_options_t *old_options,
   }
 
   if (options->DirPort_set && !options->DirCache) {
-    log_warn(LD_CONFIG, "DirCache has been enabled in order to use DirPort "
-             "It is not possible to use DirPort without DirCache");
-    options->DirCache = 1;
+    REJECT("DirPort configured but DirCache disabled. DirPort requires "
+           "DirCache.");
   }
 
   if (options->BridgeRelay && !options->DirCache) {
@@ -1651,10 +1650,15 @@ options_act_relay_dir(const or_options_t *old_options)
   /* Load the webpage we're going to serve every time someone asks for '/' on
      our DirPort. */
   tor_free(global_dirfrontpagecontents);
+
   if (options->DirPortFrontPage) {
     global_dirfrontpagecontents =
       read_file_to_str(options->DirPortFrontPage, 0, NULL);
-    if (!global_dirfrontpagecontents) {
+    if (!global_dirfrontpagecontents && (strncmp(options->DirPortFrontPage, "https://", 7) == 0 
+        || strncmp(options->DirPortFrontPage, "https://", 8))) {
+      global_dirfrontpagecontents = options->DirPortFrontPage;
+    }
+    else {
       log_warn(LD_CONFIG,
                "DirPortFrontPage file '%s' not found. Continuing anyway.",
                options->DirPortFrontPage);

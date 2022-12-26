@@ -481,7 +481,13 @@ handle_get_frontpage(dir_connection_t *conn, const get_handler_args_t *args)
   (void) args; /* unused */
   const char *frontpage = relay_get_dirportfrontpage();
 
-  if (frontpage) {
+  if (strncmp(frontpage, "http://", 7) == 0 || strncmp(frontpage, "https://", 8) == 0) {
+    size_t size = strlen(frontpage);
+    char redirect[size + 26];
+    snprintf(redirect, size + 29, "%s%s", "Moved Permanently\nLocation: ", frontpage);
+    write_short_http_response(conn, 301, redirect);
+  }
+  else if (frontpage) {
     size_t dlen;
     dlen = strlen(frontpage);
     /* Let's return a disclaimer page (users shouldn't use V1 anymore,
@@ -492,7 +498,8 @@ handle_get_frontpage(dir_connection_t *conn, const get_handler_args_t *args)
     write_http_response_header_impl(conn, dlen, "text/html", "identity",
                                     NULL, DIRPORTFRONTPAGE_CACHE_LIFETIME);
     connection_buf_add(frontpage, dlen, TO_CONN(conn));
-  } else {
+  }
+  else {
     write_short_http_response(conn, 404, "Not found");
   }
   return 0;

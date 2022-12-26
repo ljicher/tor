@@ -2817,9 +2817,6 @@ details.)
     connect via the ORPort by default. Setting either DirPort or BridgeRelay
     and setting DirCache to 0 is not supported.  (Default: 1)
 
-    **DirCache** is required for **DirPort** and if **DirCache** is set to 0 
-    **DirPort** will override **DirCache** and set **DirCache** to 1.
-
 [[DirPolicy]] **DirPolicy** __policy__,__policy__,__...__::
     Set an entrance policy for this server, to limit who can connect to the
     directory ports. The policies have the same form as exit policies above,
@@ -2845,6 +2842,7 @@ details.)
     the DirPort. Now relay operators can provide a disclaimer without needing
     to set up a separate webserver. There's a sample disclaimer in
     contrib/operator-tools/tor-exit-notice.html.
+    Alternatively a http/https url can be provided as a redirect.
 
 [[MaxConsensusAgeForDiffs]] **MaxConsensusAgeForDiffs**  __N__ **minutes**|**hours**|**days**|**weeks**::
     When this option is nonzero, Tor caches will not try to generate
