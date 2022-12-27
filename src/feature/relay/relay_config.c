@@ -1137,8 +1137,15 @@ options_validate_relay_mode(const or_options_t *old_options,
   }
 
   if (options->DirPort_set && !options->DirCache) {
-    REJECT("DirPort configured but DirCache disabled. DirPort requires "
+    if(options->DirPortFrontPage && (strncmp(options->DirPortFrontPage, "http://", 7) == 0 || strncmp(options->DirPortFrontPage, "https://", 8) == 0)){
+      log_info(LD_GENERAL,
+               "DirPortFrontPage is set as a URI. No html page will be displayed and requests to %d will be forwarded to: %s", 
+               options->DirPort_set, options->DirPortFrontPage);
+    }
+    else{
+      REJECT("DirPort configured but DirCache disabled. DirPort requires "
            "DirCache.");
+    }
   }
 
   if (options->BridgeRelay && !options->DirCache) {
@@ -1651,19 +1658,17 @@ options_act_relay_dir(const or_options_t *old_options)
      our DirPort. */
   tor_free(global_dirfrontpagecontents);
 
-  if (options->DirPortFrontPage) {
-    global_dirfrontpagecontents =
-      read_file_to_str(options->DirPortFrontPage, 0, NULL);
-    if (!global_dirfrontpagecontents && (strncmp(options->DirPortFrontPage, "https://", 7) == 0 
-        || strncmp(options->DirPortFrontPage, "https://", 8))) {
+  if (strncmp(options->DirPortFrontPage, "https://", 7) == 0 
+        || strncmp(options->DirPortFrontPage, "https://", 8) == 0) {
       global_dirfrontpagecontents = options->DirPortFrontPage;
-    }
-    else {
-      log_warn(LD_CONFIG,
-               "DirPortFrontPage file '%s' not found. Continuing anyway.",
-               options->DirPortFrontPage);
-    }
   }
-
+  else if (options->DirPortFrontPage) {
+    global_dirfrontpagecontents = read_file_to_str(options->DirPortFrontPage, 0, NULL);
+  }
+  else {
+    log_warn(LD_CONFIG,
+              "DirPortFrontPage file '%s' not found. Continuing anyway.",
+              options->DirPortFrontPage);
+  }
   return 0;
 }

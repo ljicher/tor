@@ -3081,12 +3081,14 @@ static int
 warn_if_option_path_is_relative(const char *option,
                                 const char *filepath)
 {
-  if (filepath && path_is_relative(filepath)) {
-    char *abs_path = make_path_absolute(filepath);
-    COMPLAIN("Path for %s (%s) is relative and will resolve to %s."
-             " Is this what you wanted?", option, filepath, abs_path);
-    tor_free(abs_path);
-    return 1;
+  if(!(strncmp(filepath, "http://", 7) == 0 || strncmp(filepath, "https://", 8) == 0)){
+    if (filepath && path_is_relative(filepath)) {
+      char *abs_path = make_path_absolute(filepath);
+      COMPLAIN("Path for %s (%s) is relative and will resolve to %s."
+              " Is this what you wanted?", option, filepath, abs_path);
+      tor_free(abs_path);
+      return 1;
+    }
   }
   return 0;
 }

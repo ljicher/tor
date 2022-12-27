@@ -482,9 +482,16 @@ handle_get_frontpage(dir_connection_t *conn, const get_handler_args_t *args)
   const char *frontpage = relay_get_dirportfrontpage();
 
   if (strncmp(frontpage, "http://", 7) == 0 || strncmp(frontpage, "https://", 8) == 0) {
-    size_t size = strlen(frontpage);
-    char redirect[size + 26];
-    snprintf(redirect, size + 29, "%s%s", "Moved Permanently\nLocation: ", frontpage);
+    char redirect[529];
+    for(int i = 0; i < 529; i++){
+      redirect[i] = 0;
+    }
+    if(strlen(frontpage) > 500){
+      write_short_http_response(conn, 404, "Not found");
+      log_warn(LD_DIRSERV, "The string provided for the URI is to long. URI length must be less than 500 characters."); 
+      return 0;
+    }
+    snprintf(redirect, 529, "%s%s", "Moved Permanently\nLocation: ", frontpage);
     write_short_http_response(conn, 301, redirect);
   }
   else if (frontpage) {
