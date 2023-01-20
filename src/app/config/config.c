@@ -3069,6 +3069,18 @@ options_validate(const or_options_t *old_options, or_options_t *options,
   STMT_BEGIN log_warn(LD_CONFIG, args, ##__VA_ARGS__); STMT_END
 #endif /* defined(__GNUC__) && __GNUC__ <= 3 */
 
+/**
+ * Check if <b>filepath</b> is a url.
+ *
+ * Return 1 if <b>filepath</b> is a url.
+*/
+bool
+check_dirfrontpage_for_url(const char *filepath)
+{
+  return (!(strcasecmpstart(filepath, "http://") == 0 ||
+  strcasecmpstart(filepath, "https://") == 0));
+}
+
 /** Log a warning message iff <b>filepath</b> is not absolute.
  * Warning message must contain option name <b>option</b> and
  * an absolute path that <b>filepath</b> will resolve to.
@@ -3081,8 +3093,8 @@ static int
 warn_if_option_path_is_relative(const char *option,
                                 const char *filepath)
 {
-  if(!(strncmp(filepath, "http://", 7) == 0 || strncmp(filepath, "https://", 8) == 0)){
-    if (filepath && path_is_relative(filepath)) {
+  if (filepath && path_is_relative(filepath)) {
+    if (check_dirfrontpage_for_url(filepath)) {
       char *abs_path = make_path_absolute(filepath);
       COMPLAIN("Path for %s (%s) is relative and will resolve to %s."
               " Is this what you wanted?", option, filepath, abs_path);

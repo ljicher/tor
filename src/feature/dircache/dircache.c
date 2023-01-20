@@ -481,33 +481,32 @@ handle_get_frontpage(dir_connection_t *conn, const get_handler_args_t *args)
   (void) args; /* unused */
   const char *frontpage = relay_get_dirportfrontpage();
 
-  if (strncmp(frontpage, "http://", 7) == 0 || strncmp(frontpage, "https://", 8) == 0) {
-    char redirect[529];
-    for(int i = 0; i < 529; i++){
-      redirect[i] = 0;
-    }
-    if(strlen(frontpage) > 500){
-      write_short_http_response(conn, 404, "Not found");
-      log_warn(LD_DIRSERV, "The string provided for the URI is to long. URI length must be less than 500 characters."); 
-      return 0;
-    }
-    snprintf(redirect, 529, "%s%s", "Moved Permanently\nLocation: ", frontpage);
-    write_short_http_response(conn, 301, redirect);
-  }
-  else if (frontpage) {
-    size_t dlen;
-    dlen = strlen(frontpage);
-    /* Let's return a disclaimer page (users shouldn't use V1 anymore,
-       and caches don't fetch '/', so this is safe). */
+  if (frontpage) {
+    if (check_dirfrontpage_for_url(frontpage)) {
+      char redirect[529] = {0};
+      if (strlen(frontpage) > 500) {
+        write_short_http_response(conn, 400, "Malformed Request");
+        log_warn(LD_DIRSERV, "The string provided for the URI is to long."
+        " URI length must be less than 500 characters.");
+        return 0;
+      }
+      snprintf(redirect, 529, "%s%s", "Moved Permanently\nLocation: ",
+      frontpage);
+      write_short_http_response(conn, 301, redirect);
+    } else if (frontpage) {
+      size_t dlen;
+      dlen = strlen(frontpage);
+      /* Let's return a disclaimer page (users shouldn't use V1 anymore,
+        and caches don't fetch '/', so this is safe). */
 
-    /* [We don't check for write_bucket_low here, since we want to serve
-     *  this page no matter what.] */
-    write_http_response_header_impl(conn, dlen, "text/html", "identity",
-                                    NULL, DIRPORTFRONTPAGE_CACHE_LIFETIME);
-    connection_buf_add(frontpage, dlen, TO_CONN(conn));
-  }
-  else {
-    write_short_http_response(conn, 404, "Not found");
+      /* [We don't check for write_bucket_low here, since we want to serve
+      *  this page no matter what.] */
+      write_http_response_header_impl(conn, dlen, "text/html", "identity",
+                                      NULL, DIRPORTFRONTPAGE_CACHE_LIFETIME);
+      connection_buf_add(frontpage, dlen, TO_CONN(conn));
+    } else {
+      write_short_http_response(conn, 404, "Not found");
+    }
   }
   return 0;
 }
