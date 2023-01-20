@@ -3077,8 +3077,8 @@ options_validate(const or_options_t *old_options, or_options_t *options,
 bool
 check_dirfrontpage_for_url(const char *filepath)
 {
-  return (!(strcasecmpstart(filepath, "http://") == 0 ||
-  strcasecmpstart(filepath, "https://") == 0));
+  return (strcasecmpstart(filepath, "http://") == 0 ||
+  strcasecmpstart(filepath, "https://") == 0);
 }
 
 /** Log a warning message iff <b>filepath</b> is not absolute.
