@@ -1138,7 +1138,7 @@ options_validate_relay_mode(const or_options_t *old_options,
 
   if (options->DirPort_set && !options->DirCache) {
     if (options->DirPortFrontPage) {
-      if (check_dirfrontpage_for_url(options->DirPortFrontPage)) {
+      if (check_for_url(options->DirPortFrontPage)) {
         log_info(LD_GENERAL,
                "DirPortFrontPage is set as a URI. No html page will be "
                "displayed and requests to %d will be forwarded to: %s",
@@ -1661,7 +1661,7 @@ options_act_relay_dir(const or_options_t *old_options)
   tor_free(global_dirfrontpagecontents);
 
   if (options->DirPortFrontPage) {
-    if (check_dirfrontpage_for_url(options->DirPortFrontPage)) {
+    if (check_for_url(options->DirPortFrontPage)) {
         global_dirfrontpagecontents = options->DirPortFrontPage;
     } else if (options->DirPortFrontPage) {
       global_dirfrontpagecontents =

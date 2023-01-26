@@ -482,7 +482,7 @@ handle_get_frontpage(dir_connection_t *conn, const get_handler_args_t *args)
   const char *frontpage = relay_get_dirportfrontpage();
 
   if (frontpage) {
-    if (check_dirfrontpage_for_url(frontpage)) {
+    if (check_for_url(frontpage)) {
       char redirect[529] = {0};
       if (strlen(frontpage) > 500) {
         write_short_http_response(conn, 400, "Malformed Request");
