@@ -730,6 +730,33 @@ retry_bridge_descriptor_fetch_directly(const char *digest)
   launch_direct_bridge_descriptor_fetch(bridge);
 }
 
+/** Decide whether we're ready to launch a descriptor fetch for this
+ * bridge, and if yes, prep the download fetch status for the launch.
+ * Return 1 if we want to launch, 0 if we don't want to.
+ */
+int
+prep_for_bridge_descriptor_fetch(bridge_info_t *bridge,
+                                 const or_options_t *options, time_t now)
+{
+  /* This resets the download status on first use */
+  if (!download_status_is_ready(&bridge->fetch_status, now))
+    return 0; /* don't bother, no need to retry yet */
+  if (routerset_contains_bridge(options->ExcludeNodes, bridge)) {
+    download_status_mark_impossible(&bridge->fetch_status);
+    log_warn(LD_APP, "Not using bridge at %s: it is in ExcludeNodes.",
+             safe_str_client(fmt_and_decorate_addr(&bridge->addr)));
+    return 0;
+  }
+  /* schedule the next attempt
+   * we can't increment after a failure, because sometimes we use the
+   * bridge authority, and sometimes we use the bridge direct */
+  download_status_increment_attempt(
+                    &bridge->fetch_status,
+                    safe_str_client(fmt_and_decorate_addr(&bridge->addr)),
+                    now);
+  return 1; /* all set, proceed with fetching */
+}
+
 /** For each bridge in our list for which we don't currently have a
  * descriptor, fetch a new copy of its descriptor -- either directly
  * from the bridge or via a bridge authority. */
@@ -750,23 +777,8 @@ fetch_bridge_descriptors(const or_options_t *options, time_t now)
 
   SMARTLIST_FOREACH_BEGIN(bridge_list, bridge_info_t *, bridge)
     {
-      /* This resets the download status on first use */
-      if (!download_status_is_ready(&bridge->fetch_status, now))
-        continue; /* don't bother, no need to retry yet */
-      if (routerset_contains_bridge(options->ExcludeNodes, bridge)) {
-        download_status_mark_impossible(&bridge->fetch_status);
-        log_warn(LD_APP, "Not using bridge at %s: it is in ExcludeNodes.",
-                 safe_str_client(fmt_and_decorate_addr(&bridge->addr)));
+      if (!prep_for_bridge_descriptor_fetch(bridge, options, now))
         continue;
-      }
-
-      /* schedule the next attempt
-       * we can't increment after a failure, because sometimes we use the
-       * bridge authority, and sometimes we use the bridge direct */
-      download_status_increment_attempt(
-                        &bridge->fetch_status,
-                        safe_str_client(fmt_and_decorate_addr(&bridge->addr)),
-                        now);
 
       can_use_bridge_authority = !tor_digest_is_zero(bridge->identity) &&
                                  num_bridge_auths;
