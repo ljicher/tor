@@ -3904,11 +3904,10 @@ guard_selection_get_err_str_if_dir_info_missing(guard_selection_t *gs,
   int n_considered = 0;
   int num_primary_to_check;
 
-  /* We want to check for the descriptor of at least the first two primary
+  /* We want to check for the descriptor of the first n primary
    * guards in our list, since these are the guards that we typically use for
    * circuits. */
   num_primary_to_check = get_n_primary_guards_to_use(GUARD_USAGE_TRAFFIC);
-  num_primary_to_check++;
 
   SMARTLIST_FOREACH_BEGIN(gs->primary_entry_guards, entry_guard_t *, guard) {
     entry_guard_consider_retry(guard);
