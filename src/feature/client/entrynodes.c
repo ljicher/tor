@@ -3885,6 +3885,39 @@ guards_retry_optimistic(const or_options_t *options)
   return 1;
 }
 
+/** Fetch descriptors but for the bridges that we intend to actually
+ * use, as sorted by the sampled guard list. Don't fetch descriptors
+ * for bridges later on the guard list. */
+void
+fetch_descriptors_for_first_guards(const or_options_t *options, time_t now)
+{
+  guard_selection_t *gs = get_guard_selection_info();
+  if (!gs->primary_guards_up_to_date)
+    entry_guards_update_primary(gs);
+
+  int n_considered = 0;
+  int num_primary_to_check = get_n_primary_guards_to_use(GUARD_USAGE_TRAFFIC);
+
+  SMARTLIST_FOREACH_BEGIN(gs->primary_entry_guards, entry_guard_t *, guard) {
+    entry_guard_consider_retry(guard);
+    if (guard->is_reachable == GUARD_REACHABLE_NO)
+      continue;
+    n_considered++;
+    if (!guard_has_descriptor(guard)) {
+      /* we want to try fetching it now */
+      bridge_info_t *bridge = get_bridge_info_for_guard(guard);
+      if (!prep_for_bridge_descriptor_fetch(bridge, options, now))
+        continue;
+      launch_direct_bridge_descriptor_fetch(bridge);
+    }
+    if (n_considered >= num_primary_to_check) {
+//      log_info(LD_GUARD, "Have looked at first %d guards; good enough.",
+//               n_considered);
+      break;
+    }
+  } SMARTLIST_FOREACH_END(guard);
+}
+
 /**
  * Check if we are missing any crucial dirinfo for the guard subsystem to
  * work. Return NULL if everything went well, otherwise return a newly

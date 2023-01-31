@@ -656,11 +656,14 @@ get_socks_args_by_bridge_addrport(const tor_addr_t *addr, uint16_t port)
 }
 
 /** We need to ask <b>bridge</b> for its server descriptor. */
-static void
+void
 launch_direct_bridge_descriptor_fetch(bridge_info_t *bridge)
 {
   const or_options_t *options = get_options();
   circuit_guard_state_t *guard_state = NULL;
+
+  log_info(LD_GUARD, "Wanting descriptor fetch for bridge %s",
+           safe_str_client(fmt_and_decorate_addr(&bridge->addr)));
 
   if (connection_get_by_type_addr_port_purpose(
       CONN_TYPE_DIR, &bridge->addr, bridge->port,
@@ -775,6 +778,20 @@ fetch_bridge_descriptors(const or_options_t *options, time_t now)
   if (pt_proxies_configuration_pending())
     return;
 
+  /* At this point this function goes in one of two directions:
+   *
+   * (A) If FetchBridgeDescsJIT is set, we ask the entryguard subsystem
+   * to step through the first n guards and launch descriptor fetches
+   * for them if we don't yet have a descriptor and the timers are ready.
+   */
+  if (options->FetchBridgeDescsJIT) {
+    fetch_descriptors_for_first_guards(options, now);
+    return;
+  }
+
+  /* (B) Else, we do the old behavior where we walk the entire bridge
+   * list and fetch descriptors for each of them as needed.
+   */
   SMARTLIST_FOREACH_BEGIN(bridge_list, bridge_info_t *, bridge)
     {
       if (!prep_for_bridge_descriptor_fetch(bridge, options, now))

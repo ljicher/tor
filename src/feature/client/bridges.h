@@ -52,6 +52,7 @@ void learned_bridge_descriptor(routerinfo_t *ri,
                                int from_cache, int desc_is_new);
 const smartlist_t *get_socks_args_by_bridge_addrport(const tor_addr_t *addr,
                                                      uint16_t port);
+void launch_direct_bridge_descriptor_fetch(bridge_info_t *bridge);
 
 int any_bridges_dont_support_microdescriptors(void);
 
