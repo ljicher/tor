@@ -2105,7 +2105,8 @@ select_primary_guard_for_circuit(guard_selection_t *gs,
                                  const entry_guard_restriction_t *rst,
                                  unsigned *state_out)
 {
-  const int need_descriptor = (usage == GUARD_USAGE_TRAFFIC);
+  const int need_descriptor = (usage == GUARD_USAGE_TRAFFIC) ||
+                              get_options()->UseBridges;
   entry_guard_t *chosen_guard = NULL;
 
   int num_entry_guards = get_n_primary_guards_to_use(usage);
@@ -2157,7 +2158,8 @@ select_confirmed_guard_for_circuit(guard_selection_t *gs,
                                   const entry_guard_restriction_t *rst,
                                   unsigned *state_out)
 {
-  const int need_descriptor = (usage == GUARD_USAGE_TRAFFIC);
+  const int need_descriptor = (usage == GUARD_USAGE_TRAFFIC) ||
+                              get_options()->UseBridges;
 
   SMARTLIST_FOREACH_BEGIN(gs->confirmed_entry_guards, entry_guard_t *, guard) {
     if (guard->is_primary)
