@@ -485,8 +485,13 @@ get_n_primary_guards_to_use(guard_usage_t usage)
   int param_default;
 
   /* If the user has explicitly configured the amount of guards, use
-     that. Otherwise, fall back to the default value. */
-  if (usage == GUARD_USAGE_DIRGUARD) {
+   * that. Otherwise, fall back to the default value.
+   *
+   * If we're planning to use a directory guard, use the bigger number;
+   * but as an exception use the more conservative pick if we're configured
+   * to minimize the number of bridges we touch. */
+  if (usage == GUARD_USAGE_DIRGUARD &&
+      !get_options()->FetchBridgeDescsJIT) {
     configured = get_options()->NumDirectoryGuards;
     param_name = "guard-n-primary-dir-guards-to-use";
     param_default = DFLT_N_PRIMARY_DIR_GUARDS_TO_USE;
