@@ -135,8 +135,8 @@ test_dir_handle_get_v1_command_not_found(void *data)
 
   const char *frontpage = relay_get_dirportfrontpage();
 
-  if(frontpage){
-    if(strcasecmpstart(frontpage, "http://") == 0 ||
+  if (frontpage) {
+    if (strcasecmpstart(frontpage, "http://") == 0 ||
       strcasecmpstart(frontpage, "https://") == 0) {
       /* V1 path */
       tt_int_op(directory_handle_command_get(conn, GET("/tor/"), NULL, 0),
@@ -144,7 +144,7 @@ test_dir_handle_get_v1_command_not_found(void *data)
 
       fetch_from_buf_http(TO_CONN(conn)->outbuf, &header, MAX_HEADERS_SIZE,
                           NULL, NULL, 1, 0);
-    
+
       tt_str_op(NOT_FOUND, OP_EQ, header);
       tor_free(header);
     }
@@ -153,9 +153,7 @@ test_dir_handle_get_v1_command_not_found(void *data)
   done:
     UNMOCK(connection_write_to_buf_impl_);
     connection_free_minimal(TO_CONN(conn));
-    
 }
-
 
 static const char*
 mock_get_dirportfrontpage(void)
