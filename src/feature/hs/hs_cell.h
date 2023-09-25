@@ -12,9 +12,9 @@
 #include "core/or/or.h"
 #include "feature/hs/hs_service.h"
 
-/** An INTRODUCE1 cell requires at least this amount of bytes (see section
- * 3.2.2 of the specification). Below this value, the cell must be padded. */
-#define HS_CELL_INTRODUCE1_MIN_SIZE 246
+/** We pad our INTRODUCE1 messages to this length, to avoid leaking
+ * information about which extensions are in use. */
+#define HS_CELL_INTRODUCE1_MIN_SIZE 490
 
 struct hs_subcredential_t;
 

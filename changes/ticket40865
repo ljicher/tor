@@ -1,0 +1,4 @@
+  o Minor features (onion services, security):
+    - Clients now pad INTRODUCE messages to a uniform length, to prevent
+      introduction points from guessing which or how many extensions
+      are in use. Closes ticket 40865.
