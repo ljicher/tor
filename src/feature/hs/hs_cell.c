@@ -276,6 +276,7 @@ introduce1_set_encrypted_padding(const trn_cell_introduce1_t *cell,
   tor_assert(enc_cell);
   /* This is the length we expect to have once encoded of the whole cell. */
   ssize_t full_len = trn_cell_introduce1_encoded_len(cell) +
+                     CURVE25519_PUBKEY_LEN + DIGEST256_LEN +
                      trn_cell_introduce_encrypted_encoded_len(enc_cell);
   tor_assert(full_len > 0);
   if (full_len < HS_CELL_INTRODUCE1_MIN_SIZE) {
@@ -688,6 +689,7 @@ hs_cell_build_establish_intro(const char *circ_nonce,
   /* Encode the cell. Can't be bigger than a standard cell. */
   cell_len = trn_cell_establish_intro_encode(cell_out, RELAY_PAYLOAD_SIZE,
                                              cell);
+  tor_assert_nonfatal(cell_len >= HS_CELL_INTRODUCE1_MIN_SIZE);
 
  done:
   trn_cell_establish_intro_free(cell);
