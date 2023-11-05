@@ -675,6 +675,7 @@ register_server_proxy(const managed_proxy_t *mp)
                t->name, fmt_addrport(&t->addr, t->port));
     control_event_transport_launched("server", t->name, &t->addr, t->port);
   } SMARTLIST_FOREACH_END(t);
+  pt_update_bridge_lines();
 }
 
 /** Register all the transports supported by client managed proxy
@@ -1765,6 +1766,73 @@ pt_get_extra_info_descriptor_string(void)
   smartlist_free(string_chunks);
 
   return the_string;
+}
+
+/** Log the bridge lines that clients can use to connect. */
+void
+pt_update_bridge_lines(void)
+{
+  char fingerprint[FINGERPRINT_LEN+1];
+  if (!server_identity_key_is_set() || !managed_proxy_list)
+    return;
+
+  if (crypto_pk_get_fingerprint(get_server_identity_key(), fingerprint, 0)<0) {
+    log_err(LD_BUG, "Error computing fingerprint");
+    return;
+  }
+
+  SMARTLIST_FOREACH_BEGIN(managed_proxy_list, const managed_proxy_t *, mp) {
+    if (!mp->is_server)
+      continue;
+
+    tor_assert(mp->transports);
+
+    SMARTLIST_FOREACH_BEGIN(mp->transports, const transport_t *, t) {
+      char *transport_args = NULL;
+      const char *saddr = NULL;
+
+      /* If the transport proxy returned "0.0.0.0" as its address, display
+       * our external address if we know it, or a placeholder if we don't */
+      if (tor_addr_is_null(&t->addr)) {
+        tor_addr_t addr;
+        /* Attempt to find the IPv4 and then attempt to find the IPv6 if we
+         * can't find it. */
+        bool found = relay_find_addr_to_publish(get_options(), AF_INET,
+                                                RELAY_FIND_ADDR_NO_FLAG,
+                                                &addr);
+        if (!found) {
+          found = relay_find_addr_to_publish(get_options(), AF_INET6,
+                                             RELAY_FIND_ADDR_NO_FLAG, &addr);
+        }
+        if (found && !tor_addr_is_null(&addr)) {
+          saddr = fmt_and_decorate_addr(&addr);
+        } else {
+          saddr = "<IP ADDRESS>";
+        }
+      } else {
+        saddr = fmt_and_decorate_addr(&t->addr);
+      }
+
+      /* If this transport has any arguments with it, prepend a space
+       * to them so that we can add them to the transport line, and replace
+       * commas with spaces to make it a valid bridge line. */
+      if (t->extra_info_args) {
+        tor_asprintf(&transport_args, " %s", t->extra_info_args);
+        for (int i = 0; transport_args[i]; i++) {
+          if (transport_args[i] == ',') {
+            transport_args[i] = ' ';
+          }
+        }
+      }
+
+      log_notice(LD_GENERAL,
+                 "Bridge %s %s:%d %s%s",
+                 t->name, saddr, t->port,
+                 fingerprint,
+                 transport_args ? transport_args : "");
+      tor_free(transport_args);
+    } SMARTLIST_FOREACH_END(t);
+  } SMARTLIST_FOREACH_END(mp);
 }
 
 /** Stringify the SOCKS arguments in <b>socks_args</b> according to
