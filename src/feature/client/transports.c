@@ -1773,8 +1773,12 @@ void
 pt_update_bridge_lines(void)
 {
   char fingerprint[FINGERPRINT_LEN+1];
+  smartlist_t *string_chunks = NULL;
+
   if (!server_identity_key_is_set() || !managed_proxy_list)
     return;
+
+  string_chunks = smartlist_new();
 
   if (crypto_pk_get_fingerprint(get_server_identity_key(), fingerprint, 0)<0) {
     log_err(LD_BUG, "Error computing fingerprint");
@@ -1825,7 +1829,7 @@ pt_update_bridge_lines(void)
         }
       }
 
-      log_notice(LD_GENERAL,
+      smartlist_add_asprintf(string_chunks,
                  "Bridge %s %s:%d %s%s",
                  t->name, saddr, t->port,
                  fingerprint,
@@ -1833,6 +1837,23 @@ pt_update_bridge_lines(void)
       tor_free(transport_args);
     } SMARTLIST_FOREACH_END(t);
   } SMARTLIST_FOREACH_END(mp);
+
+  SMARTLIST_FOREACH(string_chunks, char *, s, log_notice(LD_GENERAL, "%s", s));
+
+  /* If we have any valid bridgelines, join them into a single string, and
+   * save them to disk. Don't create an empty file. */
+  if (smartlist_len(string_chunks) != 0) {
+    char *str = smartlist_join_strings(string_chunks, "\n", 1, NULL);
+    char *fname = get_datadir_fname("bridgelines");
+      log_notice(LD_GENERAL, "fname '%s'", fname);
+    if (write_str_to_file_if_not_equal(fname, str))
+      log_warn(LD_FS, "Couldn't save the bridge lines to disk");
+    tor_free(fname);
+    tor_free(str);
+  }
+
+  SMARTLIST_FOREACH(string_chunks, char *, s, tor_free(s));
+  smartlist_free(string_chunks);
 }
 
 /** Stringify the SOCKS arguments in <b>socks_args</b> according to
