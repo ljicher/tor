@@ -195,13 +195,16 @@ address_can_be_used(const tor_addr_t *addr, const or_options_t *options,
 
   /* We allow internal addresses to be used if the PublishServerDescriptor is
    * unset and AssumeReachable (or for IPv6) is set.
+   * Note the `== 1`: AssumeReachableIPv6 defaults to -1, so a boolean check
+   * would incorrectly assume it's true when unset.
    *
    * This is to cover the case where a relay/bridge might be run behind a
    * firewall on a local network to users can reach the network through it
    * using Tor Browser for instance. */
   if (options->PublishServerDescriptor_ == NO_DIRINFO &&
       (options->AssumeReachable ||
-       (tor_addr_family(addr) == AF_INET6 && options->AssumeReachableIPv6))) {
+       (tor_addr_family(addr) == AF_INET6 &&
+        options->AssumeReachableIPv6 == 1))) {
     goto allow;
   }
 
