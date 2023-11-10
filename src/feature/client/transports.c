@@ -1715,40 +1715,52 @@ pt_get_extra_info_descriptor_string(void)
 
     SMARTLIST_FOREACH_BEGIN(mp->transports, const transport_t *, t) {
       char *transport_args = NULL;
-      const char *addrport = NULL;
-
-      /* If the transport proxy returned "0.0.0.0" as its address, and
-       * we know our external IP address, use it. Otherwise, use the
-       * returned address. */
-      if (tor_addr_is_null(&t->addr)) {
-        tor_addr_t addr;
-        /* Attempt to find the IPv4 and then attempt to find the IPv6 if we
-         * can't find it. */
-        bool found = relay_find_addr_to_publish(get_options(), AF_INET,
-                                                RELAY_FIND_ADDR_NO_FLAG,
-                                                &addr);
-        if (!found) {
-          found = relay_find_addr_to_publish(get_options(), AF_INET6,
-                                             RELAY_FIND_ADDR_NO_FLAG, &addr);
-        }
-        if (!found) {
-          log_err(LD_PT, "Unable to find address for transport %s", t->name);
-          continue;
-        }
-        addrport = fmt_addrport(&addr, t->port);
-      } else {
-        addrport = fmt_addrport(&t->addr, t->port);
-      }
 
       /* If this transport has any arguments with it, prepend a space
          to them so that we can add them to the transport line. */
       if (t->extra_info_args)
         tor_asprintf(&transport_args, " %s", t->extra_info_args);
 
-      smartlist_add_asprintf(string_chunks,
-                             "transport %s %s%s",
-                             t->name, addrport,
-                             transport_args ? transport_args : "");
+      /* If the transport proxy returned a non-null address, use it.
+       * Otherwise, try using the bridge's IPv4 and IPv6 addresses. */
+      if (!tor_addr_is_null(&t->addr)) {
+        smartlist_add_asprintf(string_chunks,
+                               "transport %s %s:%d%s",
+                               t->name, fmt_and_decorate_addr(&t->addr),
+                               t->port,
+                               transport_args ? transport_args : "");
+      } else {
+        tor_addr_t addr;
+        bool found_any = false;
+        bool found = relay_find_addr_to_publish(get_options(), AF_INET,
+                                                RELAY_FIND_ADDR_NO_FLAG,
+                                                &addr);
+        if (found && !tor_addr_is_null(&addr)) {
+          found_any = true;
+          smartlist_add_asprintf(string_chunks,
+                                 "transport %s %s:%d%s",
+                                 t->name, fmt_and_decorate_addr(&addr),
+                                 t->port,
+                                 transport_args ? transport_args : "");
+        }
+
+        found = relay_find_addr_to_publish(get_options(), AF_INET6,
+                                           RELAY_FIND_ADDR_NO_FLAG,
+                                           &addr);
+        if (found && !tor_addr_is_null(&addr)) {
+          found_any = true;
+          smartlist_add_asprintf(string_chunks,
+                                 "transport %s %s:%d%s",
+                                 t->name, fmt_and_decorate_addr(&addr),
+                                 t->port,
+                                 transport_args ? transport_args : "");
+        }
+
+        if (!found_any) {
+          log_err(LD_PT, "Unable to find address for transport %s", t->name);
+        }
+      }
+
       tor_free(transport_args);
     } SMARTLIST_FOREACH_END(t);
 
@@ -1793,29 +1805,6 @@ pt_update_bridge_lines(void)
 
     SMARTLIST_FOREACH_BEGIN(mp->transports, const transport_t *, t) {
       char *transport_args = NULL;
-      const char *saddr = NULL;
-
-      /* If the transport proxy returned "0.0.0.0" as its address, display
-       * our external address if we know it, or a placeholder if we don't */
-      if (tor_addr_is_null(&t->addr)) {
-        tor_addr_t addr;
-        /* Attempt to find the IPv4 and then attempt to find the IPv6 if we
-         * can't find it. */
-        bool found = relay_find_addr_to_publish(get_options(), AF_INET,
-                                                RELAY_FIND_ADDR_NO_FLAG,
-                                                &addr);
-        if (!found) {
-          found = relay_find_addr_to_publish(get_options(), AF_INET6,
-                                             RELAY_FIND_ADDR_NO_FLAG, &addr);
-        }
-        if (found && !tor_addr_is_null(&addr)) {
-          saddr = fmt_and_decorate_addr(&addr);
-        } else {
-          saddr = "<IP ADDRESS>";
-        }
-      } else {
-        saddr = fmt_and_decorate_addr(&t->addr);
-      }
 
       /* If this transport has any arguments with it, prepend a space
        * to them so that we can add them to the transport line, and replace
@@ -1829,11 +1818,51 @@ pt_update_bridge_lines(void)
         }
       }
 
-      smartlist_add_asprintf(string_chunks,
-                 "Bridge %s %s:%d %s%s",
-                 t->name, saddr, t->port,
-                 fingerprint,
-                 transport_args ? transport_args : "");
+      /* If the transport proxy returned a non-null address, use it.
+       * Otherwise, try using the bridge's IPv4 and IPv6 addresses. */
+      if (!tor_addr_is_null(&t->addr)) {
+        smartlist_add_asprintf(string_chunks,
+                               "Bridge %s %s:%d %s%s",
+                               t->name, fmt_and_decorate_addr(&t->addr),
+                               t->port, fingerprint,
+                               transport_args ? transport_args : "");
+      } else {
+        tor_addr_t addr;
+        bool found_any = false;
+        bool found = relay_find_addr_to_publish(get_options(), AF_INET,
+                                                RELAY_FIND_ADDR_NO_FLAG,
+                                                &addr);
+        if (found && !tor_addr_is_null(&addr)) {
+          found_any = true;
+          smartlist_add_asprintf(string_chunks,
+                                 "Bridge %s %s:%d %s%s",
+                                 t->name, fmt_and_decorate_addr(&addr),
+                                 t->port, fingerprint,
+                                 transport_args ? transport_args : "");
+        }
+
+        found = relay_find_addr_to_publish(get_options(), AF_INET6,
+                                           RELAY_FIND_ADDR_NO_FLAG,
+                                           &addr);
+        if (found && !tor_addr_is_null(&addr)) {
+          found_any = true;
+          smartlist_add_asprintf(string_chunks,
+                                 "Bridge %s %s:%d %s%s",
+                                 t->name, fmt_and_decorate_addr(&addr),
+                                 t->port, fingerprint,
+                                 transport_args ? transport_args : "");
+        }
+
+        /* Neither an IPv4 or IPv6 address was found. Use a placeholder. */
+        if (!found_any) {
+          smartlist_add_asprintf(string_chunks,
+                                 "Bridge %s %s:%d %s%s",
+                                 t->name, "<IP ADDRESS>",
+                                 t->port, fingerprint,
+                                 transport_args ? transport_args : "");
+        }
+      }
+
       tor_free(transport_args);
     } SMARTLIST_FOREACH_END(t);
   } SMARTLIST_FOREACH_END(mp);
