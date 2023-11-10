@@ -1845,7 +1845,6 @@ pt_update_bridge_lines(void)
   if (smartlist_len(string_chunks) != 0) {
     char *str = smartlist_join_strings(string_chunks, "\n", 1, NULL);
     char *fname = get_datadir_fname("bridgelines");
-      log_notice(LD_GENERAL, "fname '%s'", fname);
     if (write_str_to_file_if_not_equal(fname, str))
       log_warn(LD_FS, "Couldn't save the bridge lines to disk");
     tor_free(fname);
