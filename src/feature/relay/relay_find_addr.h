@@ -12,6 +12,7 @@
 typedef enum {
   RELAY_FIND_ADDR_NO_FLAG    = (1U << 0),
   RELAY_FIND_ADDR_CACHE_ONLY = (1U << 1),
+  RELAY_FIND_ADDR_NO_OR      = (1U << 2),
 } relay_find_addr_flags_t;
 
 void relay_address_new_suggestion(const tor_addr_t *suggested_addr,

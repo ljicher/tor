@@ -1733,7 +1733,7 @@ pt_get_extra_info_descriptor_string(void)
         tor_addr_t addr;
         bool found_any = false;
         bool found = relay_find_addr_to_publish(get_options(), AF_INET,
-                                                RELAY_FIND_ADDR_NO_FLAG,
+                                                RELAY_FIND_ADDR_NO_OR,
                                                 &addr);
         if (found && !tor_addr_is_null(&addr)) {
           found_any = true;
@@ -1745,7 +1745,7 @@ pt_get_extra_info_descriptor_string(void)
         }
 
         found = relay_find_addr_to_publish(get_options(), AF_INET6,
-                                           RELAY_FIND_ADDR_NO_FLAG,
+                                           RELAY_FIND_ADDR_NO_OR,
                                            &addr);
         if (found && !tor_addr_is_null(&addr)) {
           found_any = true;
@@ -1830,7 +1830,7 @@ pt_update_bridge_lines(void)
         tor_addr_t addr;
         bool found_any = false;
         bool found = relay_find_addr_to_publish(get_options(), AF_INET,
-                                                RELAY_FIND_ADDR_NO_FLAG,
+                                                RELAY_FIND_ADDR_NO_OR,
                                                 &addr);
         if (found && !tor_addr_is_null(&addr)) {
           found_any = true;
@@ -1842,7 +1842,7 @@ pt_update_bridge_lines(void)
         }
 
         found = relay_find_addr_to_publish(get_options(), AF_INET6,
-                                           RELAY_FIND_ADDR_NO_FLAG,
+                                           RELAY_FIND_ADDR_NO_OR,
                                            &addr);
         if (found && !tor_addr_is_null(&addr)) {
           found_any = true;
