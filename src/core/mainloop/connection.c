@@ -3640,6 +3640,8 @@ record_num_bytes_transferred_impl(connection_t *conn,
 {
   /* Count bytes of answering direct and tunneled directory requests */
   if (conn->type == CONN_TYPE_DIR && conn->purpose == DIR_PURPOSE_SERVER) {
+    const bool is_hs_query = strncmp(TO_DIR_CONN(conn)->requested_resource, "/tor/hs/", 8) == 0;
+    stats_increment_dir_bytes_read_and_written(num_read, num_written, is_hs_query);
     if (num_read > 0)
       bwhist_note_dir_bytes_read(num_read, now);
     if (num_written > 0)
