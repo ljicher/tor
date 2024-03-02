@@ -27,7 +27,10 @@ int connection_is_on_closeable_list(connection_t *conn);
 
 MOCK_DECL(smartlist_t *, get_connection_array, (void));
 MOCK_DECL(uint64_t,get_bytes_read,(void));
+MOCK_DECL(uint64_t,get_bytes_read_session,(void));
 MOCK_DECL(uint64_t,get_bytes_written,(void));
+MOCK_DECL(uint64_t,get_bytes_written_session,(void));
+MOCK_DECL(void,reset_data_rw,(void));
 void stats_increment_bytes_read_and_written(uint64_t r, uint64_t w);
 
 /** Bitmask for events that we can turn on and off with
