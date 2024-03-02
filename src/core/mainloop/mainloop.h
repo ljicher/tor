@@ -68,6 +68,7 @@ MOCK_DECL(void, schedule_rescan_periodic_events,(void));
 void update_current_time(time_t now);
 
 MOCK_DECL(long,get_uptime,(void));
+MOCK_DECL(long,get_daemon_uptime,(void));
 MOCK_DECL(void,reset_uptime,(void));
 
 unsigned get_signewnym_epoch(void);

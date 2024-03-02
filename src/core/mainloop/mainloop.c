@@ -140,8 +140,10 @@ static uint64_t stats_n_bytes_read = 0;
 static uint64_t stats_n_bytes_written = 0;
 /** What time did this process start up? */
 time_t time_of_process_start = 0;
-/** How many seconds have we been running? */
+/** How many seconds have we been running while actively passing traffic? */
 static long stats_n_seconds_working = 0;
+/** How many seconds has the daemon been running from initial launch? */
+static long daemon_seconds_working = 0;
 /** How many times have we returned from the main loop successfully? */
 static uint64_t stats_n_main_loop_successes = 0;
 /** How many times have we received an error from the main loop? */
@@ -2283,6 +2285,7 @@ update_current_time(time_t now)
     }
   } else if (seconds_elapsed > 0) {
     stats_n_seconds_working += seconds_elapsed;
+    daemon_seconds_working += seconds_elapsed;
   }
 
   update_approx_time(now);
@@ -2552,14 +2555,22 @@ run_main_loop_until_done(void)
     return loop_result;
 }
 
-/** Returns Tor's uptime. */
+
+/** Returns Tor's uptime of actively passing traffic */
 MOCK_IMPL(long,
 get_uptime,(void))
 {
   return stats_n_seconds_working;
 }
 
-/** Reset Tor's uptime. */
+/** Return's Tor's uptime of the daemon itself */
+MOCK_IMPL(long,
+get_daemon_uptime,(void))
+{
+  return daemon_seconds_working;
+}
+
+/** Reset Tor's uptime of actively passing traffic. */
 MOCK_IMPL(void,
 reset_uptime,(void))
 {

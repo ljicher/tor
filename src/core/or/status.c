@@ -185,6 +185,7 @@ log_heartbeat(time_t now)
   char *bw_sent = NULL;
   char *bw_rcvd = NULL;
   char *uptime = NULL;
+  char *daemon_uptime = NULL;
   const routerinfo_t *me;
   double r = tls_get_write_overhead_ratio();
   const int hibernating = we_are_hibernating();
@@ -202,14 +203,16 @@ log_heartbeat(time_t now)
   }
 
   uptime = secs_to_uptime(get_uptime());
+  daemon_uptime = secs_to_uptime(get_daemon_uptime());
   bw_rcvd = bytes_to_usage(get_bytes_read());
   bw_sent = bytes_to_usage(get_bytes_written());
 
-  log_fn(LOG_NOTICE, LD_HEARTBEAT, "Heartbeat: Tor's uptime is %s, with %d "
+  log_fn(LOG_NOTICE, LD_HEARTBEAT, "Heartbeat: Tor's uptime since last "
+         "hibernation is %s and since initial launch is %s, with %d "
          "circuits open. I've sent %s and received %s. I've received %u "
          "connections on IPv4 and %u on IPv6. I've made %u connections "
          "with IPv4 and %u with IPv6.%s",
-         uptime, count_circuits(), bw_sent, bw_rcvd,
+         uptime, daemon_uptime, count_circuits(), bw_sent, bw_rcvd,
          n_incoming_ipv4, n_incoming_ipv6,
          n_outgoing_ipv4, n_outgoing_ipv6,
          hibernating?" We are currently hibernating.":"");
