@@ -31,7 +31,8 @@ MOCK_DECL(uint64_t,get_bytes_written,(void));
 MOCK_DECL(uint64_t,get_dir_bytes_read,(bool hs));
 MOCK_DECL(uint64_t,get_dir_bytes_written,(bool hs));
 void stats_increment_bytes_read_and_written(uint64_t r, uint64_t w);
-void stats_increment_dir_bytes_read_and_written(uint64_t r, uint64_t w, bool hs);
+void stats_increment_dir_bytes_read_and_written(uint64_t r,
+                                                uint64_t w, bool hs);
 
 /** Bitmask for events that we can turn on and off with
  * connection_watch_events. */

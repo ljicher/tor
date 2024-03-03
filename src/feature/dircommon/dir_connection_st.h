@@ -31,6 +31,9 @@ struct dir_connection_t {
   /** Is this dirconn direct, or via a multi-hop Tor circuit?
    * Direct connections can use the DirPort, or BEGINDIR over the ORPort. */
   unsigned int dirconn_direct:1;
+  /** Is this dirconn used to fetch/upload hs desciptor?
+   * Only set on relay side, unused on client side. */
+  unsigned int hs_request:1;
 
   /** If we're fetching descriptors, what router purpose shall we assign
    * to them? */
@@ -58,6 +61,17 @@ struct dir_connection_t {
    * that's going away and being used on channels instead.  The dirserver still
    * needs this for the incoming side, so it's moved here. */
   uint64_t dirreq_id;
+
+  /** Number of bytes read on this connection. We track this here, and update
+   * global statistics on connection tear down so that we can differentiate
+   * between normal directory and hidden-service related request.
+   **/
+  size_t num_read;
+  /** Number of bytes written on this connection. We track this here, and
+   * update global statistics on connection tear down so that we can
+   * differentiate between normal directory and hidden-service related request.
+   **/
+  size_t num_written;
 
 #ifdef MEASUREMENTS_21206
   /** Number of RELAY_DATA cells received. */
