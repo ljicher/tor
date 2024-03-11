@@ -474,8 +474,8 @@ get_bytes_read_session,(void))
 }
 
 /**
- * Return the amount of network traffic written, in bytes, over the life of this
- * process.
+ * Return the amount of network traffic written, in bytes,
+ * over the life of this process.
  */
 MOCK_IMPL(uint64_t,
 get_bytes_written,(void))
@@ -503,7 +503,6 @@ reset_data_rw, (void))
   stats_n_bytes_read_session = 0;
   stats_n_bytes_written_session = 0;
 }
-
 
 /**
  * Increment the amount of network traffic read and written, over the life of
@@ -2590,7 +2589,6 @@ run_main_loop_until_done(void)
   else
     return loop_result;
 }
-
 
 /** Returns Tor's uptime of actively passing traffic */
 MOCK_IMPL(long,
