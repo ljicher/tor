@@ -298,9 +298,12 @@ log_heartbeat(time_t now)
   /** Now, if we are an HS service, log some stats about our usage */
   log_onion_service_stats();
 
-  tor_free(uptime);
   tor_free(bw_sent_total);
   tor_free(bw_rcvd_total);
+  tor_free(bw_sent_session);
+  tor_free(bw_rcvd_session);
+  tor_free(uptime);
+  tor_free(daemon_uptime);
 
   return 0;
 }
