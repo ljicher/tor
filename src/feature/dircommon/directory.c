@@ -11,13 +11,11 @@
 #include "core/or/connection_edge.h"
 #include "core/or/connection_or.h"
 #include "core/or/channeltls.h"
-#include "core/mainloop/mainloop.h"
 #include "feature/dircache/dircache.h"
 #include "feature/dircache/dirserv.h"
 #include "feature/dirclient/dirclient.h"
 #include "feature/dircommon/directory.h"
 #include "feature/dircommon/fp_pair.h"
-#include "feature/stats/bwhist.h"
 #include "feature/stats/geoip_stats.h"
 #include "lib/compress/compress.h"
 
@@ -493,16 +491,6 @@ connection_dir_about_to_close(dir_connection_t *dir_conn)
      * failed: forget about this router, and maybe try again. */
     connection_dir_client_request_failed(dir_conn);
   }
-
-  if (!dir_conn->hs_request) {
-    const time_t now = approx_time();
-    if (dir_conn->num_read > 0)
-      bwhist_note_dir_bytes_read(dir_conn->num_read, now);
-    if (dir_conn->num_written > 0)
-      bwhist_note_dir_bytes_written(dir_conn->num_written, now);
-  }
-  stats_increment_dir_bytes_read_and_written(dir_conn->num_read,
-                  dir_conn->num_written, dir_conn->hs_request);
 
   connection_dir_client_refetch_hsdesc_if_needed(dir_conn);
 }

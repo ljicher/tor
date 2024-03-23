@@ -139,14 +139,11 @@ static uint64_t stats_n_bytes_read = 0;
 /** How many bytes have we written since we started the process? */
 static uint64_t stats_n_bytes_written = 0;
 /** How many bytes have we read for directory purpose since we started the
- * process? */
+ * process? Includes hsdir connections */
 static uint64_t stats_n_dir_bytes_read = 0;
 /** How many bytes have we written for directory purpose since we started the
- * process? */
+ * process? Does not include hsdir connections */
 static uint64_t stats_n_dir_bytes_written = 0;
-/** How many bytes have we read for hs directory purpose since we started the
- * process? */
-static uint64_t stats_n_hsdir_bytes_read = 0;
 /** How many bytes have we written for hs directory purpose since we started
  * the process? */
 static uint64_t stats_n_hsdir_bytes_written = 0;
@@ -494,21 +491,18 @@ stats_increment_bytes_read_and_written(uint64_t r, uint64_t w)
  * Return the amount of directory raffic read, in bytes, over the life of this
  * process.
  */
-MOCK_IMPL(uint64_t,
-get_dir_bytes_read,(bool hs))
+uint64_t
+get_dir_bytes_read(void)
 {
-  if (hs)
-    return stats_n_hsdir_bytes_read;
-  else
-    return stats_n_dir_bytes_read;
+  return stats_n_dir_bytes_read;
 }
 
 /**
  * Return the amount of directory traffic read, in bytes, over the life of this
  * process.
  */
-MOCK_IMPL(uint64_t,
-get_dir_bytes_written,(bool hs))
+uint64_t
+get_dir_bytes_written(bool hs)
 {
   if (hs)
     return stats_n_hsdir_bytes_written;
@@ -523,11 +517,10 @@ get_dir_bytes_written,(bool hs))
 void
 stats_increment_dir_bytes_read_and_written(uint64_t r, uint64_t w, bool hs)
 {
+  stats_n_dir_bytes_read += r;
   if (hs) {
-    stats_n_hsdir_bytes_read += r;
     stats_n_hsdir_bytes_written += w;
   } else {
-    stats_n_dir_bytes_read += r;
     stats_n_dir_bytes_written += w;
   }
 }

@@ -62,17 +62,6 @@ struct dir_connection_t {
    * needs this for the incoming side, so it's moved here. */
   uint64_t dirreq_id;
 
-  /** Number of bytes read on this connection. We track this here, and update
-   * global statistics on connection tear down so that we can differentiate
-   * between normal directory and hidden-service related request.
-   **/
-  size_t num_read;
-  /** Number of bytes written on this connection. We track this here, and
-   * update global statistics on connection tear down so that we can
-   * differentiate between normal directory and hidden-service related request.
-   **/
-  size_t num_written;
-
 #ifdef MEASUREMENTS_21206
   /** Number of RELAY_DATA cells received. */
   uint32_t data_cells_received;

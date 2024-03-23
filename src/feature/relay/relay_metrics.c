@@ -419,9 +419,7 @@ fill_traffic_directory_values(void)
       the_store, rentry->type, rentry->name, rentry->help, 0, NULL);
   metrics_store_entry_add_label(sentry,
           metrics_format_label("direction", "read"));
-  metrics_store_entry_add_label(sentry,
-          metrics_format_label("kind", "directory"));
-  metrics_store_entry_update(sentry, get_dir_bytes_read(false));
+  metrics_store_entry_update(sentry, get_dir_bytes_read());
 
   sentry = metrics_store_add(the_store, rentry->type, rentry->name,
                              rentry->help, 0, NULL);
@@ -430,14 +428,6 @@ fill_traffic_directory_values(void)
   metrics_store_entry_add_label(sentry,
           metrics_format_label("kind", "directory"));
   metrics_store_entry_update(sentry, get_dir_bytes_written(false));
-
-  sentry = metrics_store_add(
-      the_store, rentry->type, rentry->name, rentry->help, 0, NULL);
-  metrics_store_entry_add_label(sentry,
-          metrics_format_label("direction", "read"));
-  metrics_store_entry_add_label(sentry,
-          metrics_format_label("kind", "hsdir"));
-  metrics_store_entry_update(sentry, get_dir_bytes_read(true));
 
   sentry = metrics_store_add(the_store, rentry->type, rentry->name,
                              rentry->help, 0, NULL);

@@ -28,8 +28,8 @@ int connection_is_on_closeable_list(connection_t *conn);
 MOCK_DECL(smartlist_t *, get_connection_array, (void));
 MOCK_DECL(uint64_t,get_bytes_read,(void));
 MOCK_DECL(uint64_t,get_bytes_written,(void));
-MOCK_DECL(uint64_t,get_dir_bytes_read,(bool hs));
-MOCK_DECL(uint64_t,get_dir_bytes_written,(bool hs));
+uint64_t get_dir_bytes_read(void);
+uint64_t get_dir_bytes_written(bool hs);
 void stats_increment_bytes_read_and_written(uint64_t r, uint64_t w);
 void stats_increment_dir_bytes_read_and_written(uint64_t r,
                                                 uint64_t w, bool hs);
