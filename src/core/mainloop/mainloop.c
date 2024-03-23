@@ -488,7 +488,7 @@ stats_increment_bytes_read_and_written(uint64_t r, uint64_t w)
 }
 
 /**
- * Return the amount of directory raffic read, in bytes, over the life of this
+ * Return the amount of directory traffic read, in bytes, over the life of this
  * process.
  */
 uint64_t
