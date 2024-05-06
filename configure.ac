@@ -1324,7 +1324,7 @@ if test "x$enable_pic" = "xyes"; then
 fi
 
 if test "x$enable_gcc_hardening" != "xno"; then
-    CFLAGS="$CFLAGS -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+    CFLAGS="$CFLAGS -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3"
     if test "x$have_clang" = "xyes"; then
         TOR_CHECK_CFLAGS(-Qunused-arguments)
     fi
