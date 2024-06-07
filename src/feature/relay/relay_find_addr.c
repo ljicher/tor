@@ -125,10 +125,12 @@ relay_find_addr_to_publish, (const or_options_t *options, int family,
     return false;
   }
 
-  /* There is no point on attempting an address discovery to publish if we
-   * don't have an ORPort for this family. */
-  if (!routerconf_find_or_port(options, family)) {
-    return false;
+  /* There is usually no point on attempting an address discovery to publish
+   * if we don't have an ORPort for this family. */
+  if (!(flags & RELAY_FIND_ADDR_NO_OR)) {
+    if (!routerconf_find_or_port(options, family)) {
+      return false;
+    }
   }
 
   /* First, check our resolved address cache. It should contain the address
@@ -152,18 +154,20 @@ relay_find_addr_to_publish, (const or_options_t *options, int family,
     goto found;
   }
 
-  /* No publishable address was found even though we have an ORPort thus
-   * print a notice log so operator can notice. We'll do that every hour so
-   * it is not too spammy but enough so operators address the issue. */
-  static ratelim_t rlim = RATELIM_INIT(3600);
-  log_fn_ratelim(&rlim, LOG_NOTICE, LD_CONFIG,
-                 "Unable to find %s address for ORPort %u. "
-                 "You might want to specify %sOnly to it or set an "
-                 "explicit address or set Address.",
-                 fmt_af_family(family),
-                 routerconf_find_or_port(options, family),
-                 (family == AF_INET) ? fmt_af_family(AF_INET6) :
-                                       fmt_af_family(AF_INET));
+  if (!(flags & RELAY_FIND_ADDR_NO_OR)) {
+    /* No publishable address was found even though we have an ORPort thus
+     * print a notice log so operator can notice. We'll do that every hour so
+     * it is not too spammy but enough so operators address the issue. */
+    static ratelim_t rlim = RATELIM_INIT(3600);
+    log_fn_ratelim(&rlim, LOG_NOTICE, LD_CONFIG,
+                   "Unable to find %s address for ORPort %u. "
+                   "You might want to specify %sOnly to it or set an "
+                   "explicit address or set Address.",
+                   fmt_af_family(family),
+                   routerconf_find_or_port(options, family),
+                   (family == AF_INET) ? fmt_af_family(AF_INET6) :
+                                         fmt_af_family(AF_INET));
+  }
 
   /* Not found. */
   return false;
