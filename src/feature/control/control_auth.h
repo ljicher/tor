@@ -12,6 +12,8 @@
 #ifndef TOR_CONTROL_AUTH_H
 #define TOR_CONTROL_AUTH_H
 
+void control_remove_authenticated_connection(const control_connection_t *conn);
+
 struct control_cmd_args_t;
 struct control_cmd_syntax_t;
 

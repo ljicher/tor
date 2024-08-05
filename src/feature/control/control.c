@@ -252,6 +252,8 @@ connection_control_closed(control_connection_t *conn)
   if (conn->is_owning_control_connection) {
     lost_owning_controller("connection", "closed");
   }
+
+  control_remove_authenticated_connection(conn);
 }
 
 /** Return true iff <b>cmd</b> is allowable (or at least forgivable) at this

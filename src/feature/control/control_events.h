@@ -226,6 +226,9 @@ void cbt_control_event_buildtimeout_set(const circuit_build_times_t *cbt,
 
 int control_event_enter_controller_wait(void);
 
+void stats_init(void);
+void stats_clear(void);
+
 void control_events_free_all(void);
 
 #ifdef CONTROL_MODULE_PRIVATE
